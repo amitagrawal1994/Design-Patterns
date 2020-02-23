@@ -4,6 +4,7 @@
 #include "ParkingLot.h"
 using namespace std;
 
+double ParkingTicket::count = 0;
 ParkingLot* ParkingLot::parkingLot = NULL;
 
 ParkingLot* ParkingLot::getInstance()
@@ -37,13 +38,26 @@ ParkingTicket* ParkingLot::getNewParkingTicket(Vehicle* vehicle)
         return NULL;
     }
 
+    ParkingSpot* parkingSpot = getParkingSpotForVehicle(vehicle->type);
+    if(parkingSpot == NULL)
+    {
+        cout<<"Could not find suitable parking spot for vehicle type:"<<vehicle->type<<endl;
+        return NULL;
+    }
+    assignVehicleToSpot(vehicle,parkingSpot);
+
     ParkingTicket* parkingTicket = new ParkingTicket;
-    cout<<"new parking ticket is created for vehicle type "<<vehicle->type<<endl;
+    parkingTicket->issuedAt = time(0);
+    parkingTicket->ticketNumber = ParkingTicket::count++;
+    parkingTicket->status = ACTIVE;
+    parkingTicket->assignedParkingSpotNumber = parkingSpot->number;
+
+    cout<<"\nAttributes of new parking ticket created:\nVehicle type: "<<vehicle->type<<"\nTicket number: "<<parkingTicket->ticketNumber<<"\nAssigned parking spot: "<<parkingTicket->assignedParkingSpotNumber<<endl;
     vehicle->assignTicket(parkingTicket);
     //parkingTicket->saveInDB();
 
     this->incrementSpotCount(vehicle->type);
-    this->activeTickets.insert(pair<string, ParkingTicket*>(parkingTicket->ticketNumber, parkingTicket));
+    this->activeTickets.insert(pair<double, ParkingTicket*>(parkingTicket->ticketNumber, parkingTicket));
     return parkingTicket;
 }
 
@@ -92,24 +106,24 @@ void ParkingLot::incrementSpotCount(VehicleType type)
     if(type == MOTORBIKE)
     {
         motorbikeSpotCount++;
-        cout<<"spot count incremented for motorbike. Count = "<<motorbikeSpotCount<<endl;
+        cout<<"Occupied spot count incremented for motorbike. Count = "<<motorbikeSpotCount<<endl;
     }
     else if(type == TRUCK || type == VAN)
     {
         largeSpotCount++;
-        cout<<"spot count incremented for large vehicle. Count = "<<largeSpotCount<<endl;
+        cout<<"Occupied spot count incremented for large vehicle. Count = "<<largeSpotCount<<endl;
     }
     else if(type == CAR)
     {
         if(compactSpotCount < maxcompactSpotCount)
         {
             compactSpotCount++;
-            cout<<"spot count incremented for compact vehicle. Count = "<<compactSpotCount<<endl;
+            cout<<"Occupied spot count incremented for compact vehicle. Count = "<<compactSpotCount<<endl;
         }
         else
         {
             largeSpotCount++;
-            cout<<"spot count incremented for large vehicle instead of compact. Count = "<<largeSpotCount<<endl;
+            cout<<"Occupied spot count incremented for large vehicle instead of compact. Count = "<<largeSpotCount<<endl;
         }
     }
     else if(type == EBATTERY)
@@ -117,19 +131,72 @@ void ParkingLot::incrementSpotCount(VehicleType type)
         if(electricSpotCount < maxelectricSpotCount)
         {
             electricSpotCount++;
-            cout<<"spot count incremented for electric vehicle. Count = "<<electricSpotCount<<endl;
+            cout<<"Occupied spot count incremented for electric vehicle. Count = "<<electricSpotCount<<endl;
         }
         else if(compactSpotCount < maxcompactSpotCount)
         {
             compactSpotCount++;
-            cout<<"spot count incremented for compact vehicle instead of electric. Count = "<<compactSpotCount<<endl;
+            cout<<"Occupied spot count incremented for compact vehicle instead of electric. Count = "<<compactSpotCount<<endl;
         }
         else
         {
             largeSpotCount++;
-            cout<<"spot count incremented for large vehicle instead of electric. Count = "<<largeSpotCount<<endl;
+            cout<<"Occupied spot count incremented for large vehicle instead of electric. Count = "<<largeSpotCount<<endl;
         }
     }
+}
+
+ParkingSpot* ParkingLot::getParkingSpotForVehicle(VehicleType type)
+{
+    map<string, ParkingSpot*>::iterator spotIterator;
+    if(type == MOTORBIKE)
+    {
+        for(spotIterator=motorbikeSpots.begin(); spotIterator != motorbikeSpots.end(); spotIterator++)
+        {
+            if(spotIterator->second->free)
+                return spotIterator->second;
+        }
+    }
+    else if(type == TRUCK || type == VAN)
+    {
+        for(spotIterator=largeSpots.begin(); spotIterator != largeSpots.end(); spotIterator++)
+        {
+            if(spotIterator->second->free)
+                return spotIterator->second;
+        }
+    }
+    else if(type == CAR)
+    {
+        for(spotIterator=compactSpots.begin(); spotIterator != compactSpots.end(); spotIterator++)
+        {
+            if(spotIterator->second->free)
+                return spotIterator->second;
+        }
+        for(spotIterator=largeSpots.begin(); spotIterator != largeSpots.end(); spotIterator++)
+        {
+            if(spotIterator->second->free)
+                return spotIterator->second;
+        }
+    }
+    else if(type == EBATTERY)
+    {
+        for(spotIterator=electricSpots.begin(); spotIterator != electricSpots.end(); spotIterator++)
+        {
+            if(spotIterator->second->free)
+                return spotIterator->second;
+        }
+        for(spotIterator=compactSpots.begin(); spotIterator != compactSpots.end(); spotIterator++)
+        {
+            if(spotIterator->second->free)
+                return spotIterator->second;
+        }
+        for(spotIterator=largeSpots.begin(); spotIterator != largeSpots.end(); spotIterator++)
+        {
+            if(spotIterator->second->free)
+                return spotIterator->second;
+        }
+    }
+    return NULL;
 }
 
 void ParkingLot::addParkingSpot(ParkingSpot* spot)
