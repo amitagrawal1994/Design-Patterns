@@ -19,13 +19,11 @@ bool ParkingSpot::assignVehicle(Vehicle* vehicle)
 
 void ParkingSpot::removeVehicle()
 {
+    this->vehicle->ticket->payedAt = time(0);
+    this->vehicle->ticket->status = PAID;
     this->vehicle = NULL;
-    free = true;
-}
-
-bool ParkingSpot::isFree()
-{
-    return free;
+    this->free = true;
+    cout<<"Parking spot with spot number:"<<this->number<<" has been freed"<<endl;
 }
 
 HandicappedSpot::HandicappedSpot(string number)

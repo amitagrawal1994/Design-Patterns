@@ -18,10 +18,10 @@ enum ParkingSpotType
 //  ACTIVE, BLOCKED, BANNED, COMPROMISED, ARCHIVED, UNKNOWN
 //};
 
-//enum ParkingTicketStatus 
-//{
-//  ACTIVE, PAID, LOST
-//};
+enum ParkingTicketStatus 
+{
+  ACTIVE, PAID, LOST
+};
 
 struct Location 
 {
@@ -51,24 +51,26 @@ class Account
     virtual bool resetPassword() = 0;
 };
 
+class ParkingSpot;
 class ParkingTicket
 {
     public:
-        string ticketNumber;
+        double ticketNumber;
         time_t  issuedAt;
         time_t payedAt;
         double payedAmount;
-       // ParkingTicketStatus status;
-        
+        static double count;
+        ParkingTicketStatus status;
+        ParkingSpot* parkingSpot;
 };
 
 class Vehicle
 {
     protected:
         string licencenumber;
-        ParkingTicket* ticket;
 
     public:
+        ParkingTicket* ticket;
         VehicleType type;
         Vehicle();
         Vehicle(VehicleType type);
@@ -87,8 +89,6 @@ class ParkingSpot
         bool free;
         Vehicle* vehicle;
         ParkingSpotType type;
-
-        bool isFree();
         ParkingSpot();
         ParkingSpot(ParkingSpotType type);
         bool assignVehicle(Vehicle* vehicle);
@@ -99,6 +99,51 @@ class CompactSpot : public ParkingSpot{public: CompactSpot(string number);};
 class LargeSpot : public ParkingSpot{public: LargeSpot(string number);};
 class MotorBikeSpot : public ParkingSpot{public: MotorBikeSpot(string number);};
 class ElectricSpot : public ParkingSpot{public: ElectricSpot(string number);};
+
+class ParkingLot
+{
+  private:
+    static ParkingLot* parkingLot;
+    ParkingLot(){};
+    int maxcompactSpotCount;
+    int maxhandicappedSpotCount;
+    int maxlargeSpotCount;
+    int maxmotorbikeSpotCount;
+    int maxelectricSpotCount;
+    int compactSpotCount;
+    int handicappedSpotCount;
+    int largeSpotCount;
+    int motorbikeSpotCount;
+    int electricSpotCount;
+    map<string,ParkingSpot*> handicappedSpots;
+    map<string,ParkingSpot*> compactSpots;
+    map<string,ParkingSpot*> largeSpots;
+    map<string,ParkingSpot*> motorbikeSpots;
+    map<string,ParkingSpot*> electricSpots;
+    void assignVehicleToSpot(Vehicle* vehicle, ParkingSpot* spot);
+    void freeSpot(ParkingSpot* spot);
+    ParkingTicket* getTicketforParkingNumber(double parkingNumber);
+    map<double, ParkingTicket*> activeTickets;
+    ParkingSpot* getParkingSpotForVehicle(VehicleType type);
+    bool isFull(VehicleType type);
+    void incrementSpotCount(VehicleType type);
+    void decrementSpotCount(ParkingSpotType type);
+    //string name;
+    //Location address;
+    //ParkingRate parkingRate;
+    //void addParkingFloor(ParkingFloor* parkingFloor);
+    //void addEntrancePanel(EntrancePanel entrancePanel);
+    //void addExitPanel(ExitPanel exitPanel);
+    //map<string, EntrancePanel> entrancePanels;
+    //map<string, ExitPanel> exitPanels;
+    //map<string, ParkingFloor> parkingFloors;
+  
+  public:
+    static ParkingLot* getInstance();
+    void addParkingSpot(ParkingSpot* spot);
+    ParkingTicket* getNewParkingTicket(Vehicle* vehicle);
+    void processTicketforPayment(double ticketNumber);
+};
 
 //class ParkingDisplayBoard
 //{
@@ -135,48 +180,6 @@ class ElectricSpot : public ParkingSpot{public: ElectricSpot(string number);};
 //    //void updateDisplayBoardForMotorBike(ParkingSpot* spot);
 //    //void updateDisplayBoardForElectric(ParkingSpot* spot);
 //};
-
-class ParkingLot
-{
-  private:
-    static ParkingLot* parkingLot;
-    ParkingLot(){};
-
-  public:
-    //string name;
-    //Location address;
-    //ParkingRate parkingRate;
-    int maxcompactSpotCount;
-    int maxhandicappedSpotCount;
-    int maxlargeSpotCount;
-    int maxmotorbikeSpotCount;
-    int maxelectricSpotCount;
-    int compactSpotCount;
-    int handicappedSpotCount;
-    int largeSpotCount;
-    int motorbikeSpotCount;
-    int electricSpotCount;
-    map<string,ParkingSpot*> handicappedSpots;
-    map<string,ParkingSpot*> compactSpots;
-    map<string,ParkingSpot*> largeSpots;
-    map<string,ParkingSpot*> motorbikeSpots;
-    map<string,ParkingSpot*> electricSpots;
-    void addParkingSpot(ParkingSpot* spot);
-    void assignVehicleToSpot(Vehicle* vehicle, ParkingSpot* spot);
-    void freeSpot(ParkingSpot* spot);
-    map<string, ParkingTicket*> activeTickets;
-    //map<string, EntrancePanel> entrancePanels;
-    //map<string, ExitPanel> exitPanels;
-    //map<string, ParkingFloor> parkingFloors;
-
-    static ParkingLot* getInstance();
-    ParkingTicket* getNewParkingTicket(Vehicle* vehicle);
-    bool isFull(VehicleType type);
-    void incrementSpotCount(VehicleType type);
-    //void addParkingFloor(ParkingFloor* parkingFloor);
-    //void addEntrancePanel(EntrancePanel entrancePanel);
-    //void addExitPanel(ExitPanel exitPanel);
-};
 
 //class CustomerInfoPanel;
 //class EntrancePanel;

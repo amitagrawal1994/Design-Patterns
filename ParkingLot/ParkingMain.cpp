@@ -33,15 +33,21 @@ int main()
     Vehicle* vehicleC1 = new Vehicle(CAR);
     Vehicle* vehicleC2 = new Vehicle(CAR);
     Vehicle* vehicleB1 = new Vehicle(EBATTERY);
+    Vehicle* vehicleB2 = new Vehicle(EBATTERY);
     Vehicle* vehicleV1 = new Vehicle(VAN);
     Vehicle* vehicleM1 = new Vehicle(MOTORBIKE);
 
-    parkingLotInstance->getNewParkingTicket(vehicleT1);
-    parkingLotInstance->getNewParkingTicket(vehicleV1);
     parkingLotInstance->getNewParkingTicket(vehicleB1);
+    parkingLotInstance->getNewParkingTicket(vehicleB2);
     parkingLotInstance->getNewParkingTicket(vehicleC1);
     parkingLotInstance->getNewParkingTicket(vehicleC2);
     parkingLotInstance->getNewParkingTicket(vehicleM1);
 
+    parkingLotInstance = ParkingLot::getInstance();
+    parkingLotInstance->processTicketforPayment(3);
+    parkingLotInstance->processTicketforPayment(0);
+    parkingLotInstance->processTicketforPayment(4);
+    parkingLotInstance->processTicketforPayment(2);
+    parkingLotInstance->processTicketforPayment(1);
     return 0;
 }
